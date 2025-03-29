@@ -35,7 +35,7 @@ export function AppRoute(app) {
     router.put('/orders', OrderController.updateOrder);
     router.delete('/orders/:id', OrderController.deleteOrder);
 
-    // OrderDetail Routes
+    // Order Detail Routes
     router.get('/order-details', OrderDetailController.getOrderDetails);
     router.get('/order-details/:id', OrderDetailController.getOrderDetailById);
     router.post('/order-details', OrderDetailController.insertOrderDetail);
