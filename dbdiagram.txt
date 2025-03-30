@@ -120,3 +120,4 @@ Table banner_details {
 
 Ref: "products"."id" < "banner_details"."product_id"
 Ref: "banners"."id" < "banner_details"."product_id"   
+

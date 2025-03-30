@@ -23,21 +23,12 @@ export async function insertProduct(req, res) {
             error: error.details[0]?.message
         });
     }
-    try {
-        // console.log(JSON.stringify(req.body));
-        const product = await db.Product.create(req.body)
-        await db.Product.create
-        return res.status(201).json({
-            message: 'Thêm mới sản phẩm thành công',
-            data: product
-        })
-    } catch (error) {
-        return res.status(500).json({
-            message: 'Lỗi khi thêm sản phẩm mới',
-            // errors: [error.message]
-            error
-        })
-    }
+    const product = await db.Product.create(req.body)
+    await db.Product.create
+    return res.status(201).json({
+        message: 'Thêm mới sản phẩm thành công',
+        data: product
+    })
 }
 
 export async function deleteProduct(req, res) {

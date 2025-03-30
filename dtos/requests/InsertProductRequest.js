@@ -31,3 +31,6 @@ class InsertProductRequest {
 }
 
 export default InsertProductRequest
+
+// SELECT * FROM information_schema.table_constraints
+// WHERE table_schema = 'shopapp_online' AND table_name = 'products';

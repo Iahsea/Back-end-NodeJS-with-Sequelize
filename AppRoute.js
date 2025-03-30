@@ -5,12 +5,13 @@ import * as CategoryController from './controllers/CategoryController'
 import * as BrandController from './controllers/BrandController'
 import * as OrderController from './controllers/OrderController'
 import * as OrderDetailController from './controllers/OrderDetailController'
+import asyncHandler from './middlewares/asyncHandler'
 
 export function AppRoute(app) {
     // Product Routes
     router.get('/products', ProductController.getProducts)
     router.get('/products/:id', ProductController.getProductById)
-    router.post('/products', ProductController.insertProduct)
+    router.post('/products', asyncHandler(ProductController.insertProduct))
     router.delete('/products/:id', ProductController.deleteProduct)
     router.put('/products', ProductController.updateProduct)
 
