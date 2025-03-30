@@ -1,5 +1,6 @@
 import { Sequelize } from "sequelize"
 import db from "../models"
+import InsertProductRequest from "../dtos/requests/InsertProductRequest"
 
 export async function getProducts(req, res) {
     res.status(200).json({
@@ -14,18 +15,27 @@ export async function getProductById(req, res) {
 }
 
 export async function insertProduct(req, res) {
+    const { error } = InsertProductRequest.validate(req.body) //destructuring an object
+    if (error) {
+        return res.status(400).json({
+            message: 'Lỗi khi thêm sản phẩm mới',
+            // errors: error.details
+            error: error.details[0]?.message
+        });
+    }
     try {
         // console.log(JSON.stringify(req.body));
         const product = await db.Product.create(req.body)
         await db.Product.create
-        res.status(201).json({
+        return res.status(201).json({
             message: 'Thêm mới sản phẩm thành công',
             data: product
         })
     } catch (error) {
-        res.status(500).json({
+        return res.status(500).json({
             message: 'Lỗi khi thêm sản phẩm mới',
-            data: error.message
+            // errors: [error.message]
+            error
         })
     }
 }
