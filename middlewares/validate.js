@@ -11,4 +11,4 @@ const validate = (requestType) => {
     };
 };
 
-export default validate
+export default validate 

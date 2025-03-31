@@ -1,7 +1,7 @@
 import { Sequelize, where } from "sequelize"
 const { Op } = Sequelize;
 import db from "../models"
-import InsertProductRequest from "../dtos/requests/InsertProductRequest"
+import InsertProductRequest from "../dtos/requests/product/InsertProductRequest"
 import validateHandler from "../middlewares/validate"
 
 export async function getProducts(req, res) {
@@ -65,13 +65,33 @@ export async function insertProduct(req, res) {
 }
 
 export async function deleteProduct(req, res) {
-    res.status(200).json({
-        message: 'Xóa sản phẩm thành công'
+    const { id } = req.params
+    const deleted = await db.Product.destroy({
+        where: { id }
     })
+    if (deleted) {
+        res.status(200).json({
+            message: 'Xóa sản phẩm thành công',
+        })
+    } else {
+        res.status(404).json({
+            message: 'Sản phẩm không tìm thấy',
+        });
+    }
 }
 
 export async function updateProduct(req, res) {
-    res.status(200).json({
-        message: 'Update sản phẩm thành công'
-    })
+    const { id } = req.params;
+    const updatedProduct = await db.Product.update(req.body, {
+        where: { id }
+    });
+    if (updatedProduct[0] > 0) {
+        return res.status(200).json({
+            message: 'Update sản phẩm thành công'
+        });
+    } else {
+        return res.status(400).json({
+            message: 'Sản phẩm không tìm thấy'
+        });
+    }
 }

@@ -7,7 +7,8 @@ import * as OrderController from './controllers/OrderController'
 import * as OrderDetailController from './controllers/OrderDetailController'
 import asyncHandler from './middlewares/asyncHandler'
 import validate from './middlewares/validate'
-import InsertProductRequest from './dtos/requests/InsertProductRequest'
+import InsertProductRequest from './dtos/requests/product/InsertProductRequest'
+import UpdateProductRequest from './dtos/requests/product/UpdateProductRequest'
 
 export function AppRoute(app) {
 
@@ -19,7 +20,9 @@ export function AppRoute(app) {
         asyncHandler(ProductController.insertProduct)
     );
     router.delete('/products/:id', asyncHandler(ProductController.deleteProduct));
-    router.put('/products', asyncHandler(ProductController.updateProduct));
+    router.put('/products/:id',
+        validate(UpdateProductRequest),
+        asyncHandler(ProductController.updateProduct));
 
     // Category Routes
     router.get('/categories', asyncHandler(CategoryController.getCategories));
