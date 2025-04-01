@@ -55,7 +55,7 @@ export async function getProductById(req, res) {
 
 export async function insertProduct(req, res) {
     const product = await db.Product.create(req.body)
-    await db.Product.create
+    // await db.Product.create
     return res.status(201).json({
         message: 'Thêm mới sản phẩm thành công',
         data: product

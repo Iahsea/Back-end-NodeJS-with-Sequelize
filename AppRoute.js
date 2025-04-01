@@ -6,6 +6,7 @@ import * as CategoryController from './controllers/CategoryController'
 import * as BrandController from './controllers/BrandController'
 import * as OrderController from './controllers/OrderController'
 import * as OrderDetailController from './controllers/OrderDetailController'
+import * as NewsController from './controllers/NewsController'
 
 import asyncHandler from './middlewares/asyncHandler'
 import validate from './middlewares/validate'
@@ -13,6 +14,7 @@ import InsertProductRequest from './dtos/requests/product/InsertProductRequest'
 import UpdateProductRequest from './dtos/requests/product/UpdateProductRequest'
 import InsertOrderRequest from './dtos/requests/order/InsertOrderRequest'
 import InsertUserRequest from './dtos/requests/users/InsertUserRequest'
+import InsertNewsRequest from './dtos/requests/news/InsertNewsRequest'
 
 export function AppRoute(app) {
     // User Routes
@@ -62,6 +64,16 @@ export function AppRoute(app) {
     router.post('/order-details', asyncHandler(OrderDetailController.insertOrderDetail));
     router.put('/order-details', asyncHandler(OrderDetailController.updateOrderDetail));
     router.delete('/order-details/:id', asyncHandler(OrderDetailController.deleteOrderDetail));
+
+    // News Routes
+    router.get('/news', asyncHandler(NewsController.getNewsArticles));
+    router.get('/news/:id', asyncHandler(NewsController.getNewsArticleById));
+    router.post('/news',
+        validate(InsertNewsRequest),
+        asyncHandler(NewsController.insertNewsArticle));
+    router.delete('/news/:id', asyncHandler(NewsController.deleteNewsArticle));
+    router.put('/news', asyncHandler(NewsController.updateNewsArticle));
+
 
 
     app.use('/api/', router)
