@@ -1,8 +1,6 @@
-import { Sequelize, where } from "sequelize"
+import { Sequelize } from "sequelize"
 const { Op } = Sequelize;
 import db from "../models"
-import InsertProductRequest from "../dtos/requests/product/InsertProductRequest"
-import validateHandler from "../middlewares/validate"
 
 export async function getProducts(req, res) {
     // const products = await db.Product.findAll()

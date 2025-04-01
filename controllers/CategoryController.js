@@ -63,13 +63,35 @@ export async function insertCategory(req, res) {
 }
 
 export async function deleteCategory(req, res) {
-    res.status(200).json({
-        message: 'Xóa danh mục thành công'
+    const { id } = req.params;
+    const deleted = await db.Category.destroy({
+        where: { id }
     });
+
+    if (deleted) {
+        res.status(200).json({
+            message: 'Xóa danh mục thành công'
+        });
+    } else {
+        res.status(404).json({
+            message: 'Danh mục không tìm thấy'
+        });
+    }
 }
 
 export async function updateCategory(req, res) {
-    res.status(200).json({
-        message: 'Cập nhật danh mục thành công'
+    const { id } = req.params;
+    const updatedCategory = await db.Category.update(req.body, {
+        where: { id }
     });
+
+    if (updatedCategory[0] > 0) {
+        return res.status(200).json({
+            message: 'Cập nhật danh mục thành công'
+        });
+    } else {
+        return res.status(400).json({
+            message: 'Danh mục không tìm thấy'
+        });
+    }
 }

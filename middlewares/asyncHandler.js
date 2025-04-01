@@ -1,3 +1,5 @@
+import { stack } from "sequelize/lib/utils";
+
 /*
 async function asyncHandler(fn) {
 
@@ -9,6 +11,9 @@ const asyncHandler = (fn) => {
         try {
             await fn(req, res, next)
         } catch (error) {
+            console.error('Detailed error:', error)
+            console.log('Error Details:', { message: error.message, stack: error.stack });
+
             return res.status(500).json({
                 message: 'Internal Server Error',
                 // Including the error message can be help with debugging.
