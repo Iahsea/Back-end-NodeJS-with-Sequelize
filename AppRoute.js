@@ -17,6 +17,7 @@ import InsertOrderRequest from './dtos/requests/order/InsertOrderRequest'
 import InsertUserRequest from './dtos/requests/users/InsertUserRequest'
 import InsertNewsRequest from './dtos/requests/news/InsertNewsRequest'
 import InsertNewsDetailRequest from './dtos/requests/newsdetail/insertNewsDetailRequest'
+import UpdateNewsRequest from './dtos/requests/news/UpdateNewsRequest'
 
 export function AppRoute(app) {
     // User Routes
@@ -74,7 +75,9 @@ export function AppRoute(app) {
         validate(InsertNewsRequest),
         asyncHandler(NewsController.insertNewsArticle));
     router.delete('/news/:id', asyncHandler(NewsController.deleteNewsArticle));
-    router.put('/news', asyncHandler(NewsController.updateNewsArticle));
+    router.put('/news/:id',
+        validate(UpdateNewsRequest),
+        asyncHandler(NewsController.updateNewsArticle));
 
     // News Detail Routes
     router.get('/news-details', asyncHandler(NewsDetailController.getNewsDetails));

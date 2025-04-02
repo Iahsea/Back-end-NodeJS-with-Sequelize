@@ -97,20 +97,54 @@ export async function insertNewsArticle(req, res) {
 }
 
 export const deleteNewsArticle = async (req, res) => {
-    const { id } = req.params;
-    const deleted = await db.News.destroy({
-        where: { id }
-    });
+    const transaction = await db.sequelize.transaction();
 
-    if (deleted) {
-        res.status(200).json({
-            message: 'Xóa tin tức thành công'
+    try {
+        const { id } = req.params;
+
+        const listNews = await db.NewsDetail.findAll({
+            where: {
+                news_id: id
+            },
+        })
+
+        console.log("check list news >>>>>>>>", listNews);
+
+        const listNewsId = listNews.map(newsDetail => newsDetail.id);
+
+
+        const deleteNewsDetail = listNewsId.map(id => {
+            db.NewsDetail.destroy({
+                where: { id: id }
+            });
         });
-    } else {
-        res.status(404).json({
-            message: 'Tin tức không tìm thấy'
+
+        await Promise.all(deleteNewsDetail);
+
+        await transaction.commit();
+
+        const deleted = await db.News.destroy({
+            where: { id }
+        });
+
+        if (deleted) {
+            res.status(200).json({
+                message: 'Xóa tin tức thành công'
+            });
+        } else {
+            res.status(404).json({
+                message: 'Tin tức không tìm thấy'
+            });
+        }
+    } catch (error) {
+        await transaction.rollback();
+        res.status(500).json({
+            message: 'Không thể xóa tin tức',
+            error: error.message
         });
     }
+
+
 }
 
 export async function updateNewsArticle(req, res) {
