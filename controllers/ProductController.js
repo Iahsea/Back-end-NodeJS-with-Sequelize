@@ -80,6 +80,20 @@ export async function deleteProduct(req, res) {
 
 export async function updateProduct(req, res) {
     const { id } = req.params;
+    const { name } = req.body;
+
+    const existingProduct = await db.Product.findOne({
+        where: {
+            name: name,
+            id: { [Sequelize.Op.ne]: id }
+        }
+    })
+
+    if (existingProduct) {
+        return res.status(400).json({
+            message: 'Tên sản phẩm đã tồn tại, vui lòng chọn tên khác'
+        });
+    }
     const updatedProduct = await db.Product.update(req.body, {
         where: { id }
     });

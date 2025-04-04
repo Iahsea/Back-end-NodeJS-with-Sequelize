@@ -81,6 +81,21 @@ export async function deleteCategory(req, res) {
 
 export async function updateCategory(req, res) {
     const { id } = req.params;
+    const { name } = req.body;
+
+    const existingCategory = await db.Category.findOne({
+        where: {
+            name: name,
+            id: { [Sequelize.Op.ne]: id }
+        }
+    })
+
+    if (existingCategory) {
+        return res.status(400).json({
+            message: 'Category đã tồn tại'
+        });
+    }
+
     const updatedCategory = await db.Category.update(req.body, {
         where: { id }
     });

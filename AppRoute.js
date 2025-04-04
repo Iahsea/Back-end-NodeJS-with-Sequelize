@@ -14,6 +14,8 @@ import * as ImageController from './controllers/ImageController'
 
 import asyncHandler from './middlewares/asyncHandler'
 import validate from './middlewares/validate'
+import validateImageExists from './middlewares/validateImageExists'
+
 import InsertProductRequest from './dtos/requests/product/InsertProductRequest'
 import UpdateProductRequest from './dtos/requests/product/UpdateProductRequest'
 import InsertOrderRequest from './dtos/requests/order/InsertOrderRequest'
@@ -23,6 +25,7 @@ import InsertNewsDetailRequest from './dtos/requests/newsdetail/InsertNewsDetail
 import UpdateNewsRequest from './dtos/requests/news/UpdateNewsRequest'
 import InsertBannerRequest from './dtos/requests/banner/InsertBannerRequest'
 import InsertBannerDetailRequest from './dtos/requests/banner_detail/InsertBannerDetailRequest'
+
 import uploadImageMiddleware from './middlewares/imageUpload'
 
 export function AppRoute(app) {
@@ -36,26 +39,36 @@ export function AppRoute(app) {
     router.get('/products', asyncHandler(ProductController.getProducts));
     router.get('/products/:id', asyncHandler(ProductController.getProductById));
     router.post('/products',
+        validateImageExists,
         validate(InsertProductRequest),
         asyncHandler(ProductController.insertProduct)
     );
     router.delete('/products/:id', asyncHandler(ProductController.deleteProduct));
     router.put('/products/:id',
+        validateImageExists,
         validate(UpdateProductRequest),
         asyncHandler(ProductController.updateProduct));
 
     // Category Routes
     router.get('/categories', asyncHandler(CategoryController.getCategories));
     router.get('/categories/:id', asyncHandler(CategoryController.getCategoryById));
-    router.post('/categories', asyncHandler(CategoryController.insertCategory));
+    router.post('/categories',
+        validateImageExists,
+        asyncHandler(CategoryController.insertCategory));
     router.delete('/categories/:id', asyncHandler(CategoryController.deleteCategory));
-    router.put('/categories', asyncHandler(CategoryController.updateCategory));
+    router.put('/categories/:id',
+        validateImageExists,
+        asyncHandler(CategoryController.updateCategory));
 
     // Brand Routes
     router.get('/brands', asyncHandler(BrandController.getBrands));
     router.get('/brands/:id', asyncHandler(BrandController.getBrandById));
-    router.post('/brands', asyncHandler(BrandController.insertBrand));
-    router.put('/brands', asyncHandler(BrandController.updateBrand));
+    router.post('/brands',
+        validateImageExists,
+        asyncHandler(BrandController.insertBrand));
+    router.put('/brands',
+        validateImageExists,
+        asyncHandler(BrandController.updateBrand));
     router.delete('/brands/:id', asyncHandler(BrandController.deleteBrand));
 
     // Order Routes
@@ -78,11 +91,13 @@ export function AppRoute(app) {
     router.get('/news', asyncHandler(NewsController.getNewsArticles));
     router.get('/news/:id', asyncHandler(NewsController.getNewsArticleById));
     router.post('/news',
+        validateImageExists,
         validate(InsertNewsRequest),
         asyncHandler(NewsController.insertNewsArticle));
     router.delete('/news/:id', asyncHandler(NewsController.deleteNewsArticle));
     router.put('/news/:id',
         validate(UpdateNewsRequest),
+        validateImageExists,
         asyncHandler(NewsController.updateNewsArticle));
 
     // News Detail Routes
@@ -99,8 +114,11 @@ export function AppRoute(app) {
     router.get('/banners/:id', asyncHandler(BannerController.getBannerById));
     router.post('/banners',
         validate(InsertBannerRequest),
+        validateImageExists,
         asyncHandler(BannerController.insertBanner));
-    router.put('/banners/:id', asyncHandler(BannerController.updateBanner));
+    router.put('/banners/:id',
+        validateImageExists,
+        asyncHandler(BannerController.updateBanner));
     router.delete('/banners/:id', asyncHandler(BannerController.deleteBanner));
 
     // BannerDetail Routes
@@ -113,11 +131,11 @@ export function AppRoute(app) {
     router.delete('/banner-details/:id', asyncHandler(BannerDetailController.deleteBannerDetail));
 
 
-    uploadImageMiddleware
-
     router.post('/images/upload',
         uploadImageMiddleware.array('images', 5), // max 5 photo
         asyncHandler(ImageController.uploadImages));
+
+    router.get('/images/:fileName', asyncHandler(ImageController.viewImage));
 
     app.use('/api/', router)
 }

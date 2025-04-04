@@ -134,6 +134,22 @@ export const deleteNewsArticle = async (req, res) => {
 
 export async function updateNewsArticle(req, res) {
     const { id } = req.params;
+    const { tittle } = req.body;
+
+    const existingArticle = await db.News.findOne({
+        where: {
+            tittle: tittle,
+            id: { [Sequelize.Op.ne]: id }
+        }
+    })
+
+    if (existingArticle) {
+        return res.status(400).json({
+            message: 'Tên tiêu đề đã tồn tại, vui lòng chọn tiêu đề khác'
+        });
+    }
+
+
     const updatedNews = await db.News.update(req.body, {
         where: { id }
     });

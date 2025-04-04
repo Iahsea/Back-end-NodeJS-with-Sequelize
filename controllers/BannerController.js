@@ -1,6 +1,8 @@
 import { Sequelize } from "sequelize";
 const { Op } = Sequelize;
 import db from "../models";
+import path from 'path'
+import fs from 'fs'
 
 export const getBanners = async (req, res) => {
     const { search = '', page = 1 } = req.query;
@@ -96,20 +98,25 @@ export const deleteBanner = async (req, res) => {
 
 export async function updateBanner(req, res) {
     const { id } = req.params;
+
+    const existingBanner = await db.Banner.findOne({
+        where: {
+            name: req.body.name,
+            id: { [Sequelize.Op.ne]: id }
+        }
+    })
+
+    if (existingBanner) {
+        return res.status(400).json({
+            message: 'Tên banner đã tồn tại, vui lòng chọn tên khác'
+        });
+    }
+
     const updatedBanner = await db.Banner.update(req.body, {
         where: { id }
     });
 
-    console.log(">>>>> check updateBanner", updatedBanner);
-
-
-    if (updatedBanner[0] > 0) {
-        return res.status(200).json({
-            message: 'Cập nhật banner thành công'
-        });
-    } else {
-        return res.status(400).json({
-            message: 'Banner không tìm thấy'
-        });
-    }
+    return res.status(200).json({
+        message: 'Cập nhật banner thành công'
+    });
 }
