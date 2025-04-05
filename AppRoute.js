@@ -131,9 +131,11 @@ export function AppRoute(app) {
     router.delete('/banner-details/:id', asyncHandler(BannerDetailController.deleteBannerDetail));
 
 
+    // Images Routes
     router.post('/images/upload',
         uploadImageMiddleware.array('images', 5), // max 5 photo
         asyncHandler(ImageController.uploadImages));
+    router.delete('/images/delete', asyncHandler(ImageController.deleteImage));
 
     router.get('/images/:fileName', asyncHandler(ImageController.viewImage));
 
