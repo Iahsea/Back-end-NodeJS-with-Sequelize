@@ -73,17 +73,19 @@ export async function updateBrand(req, res) {
     const { id } = req.params;
     const { name } = req.body;
 
-    const existingBrand = await db.Brand.findOne({
-        where: {
-            name: name,
-            id: { [Sequelize.Op.ne]: id }
-        }
-    })
+    if (name !== undefined) {
+        const existingBrand = await db.Brand.findOne({
+            where: {
+                name: name,
+                id: { [Sequelize.Op.ne]: id }
+            }
+        })
 
-    if (existingBrand) {
-        return res.status(400).json({
-            message: 'Tên thương hiệu đã tồn tại, vui lòng chọn tên khác'
-        });
+        if (existingBrand) {
+            return res.status(400).json({
+                message: 'Tên thương hiệu đã tồn tại, vui lòng chọn tên khác'
+            });
+        }
     }
 
     const updatedBrand = await db.Brand.update(req.body, {

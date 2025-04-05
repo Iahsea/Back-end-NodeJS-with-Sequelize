@@ -54,6 +54,17 @@ export async function getProductById(req, res) {
 }
 
 export async function insertProduct(req, res) {
+    const { name } = req.body;
+    const productExists = await db.Product.findOne({
+        where: { name }
+    })
+
+    if (productExists) {
+        return res.status(400).json({
+            message: 'Tên sản phẩm đã tồn tại, vui lòng chọn tên khác'
+        })
+    }
+
     const product = await db.Product.create(req.body)
     // await db.Product.create
     return res.status(201).json({
@@ -82,21 +93,25 @@ export async function updateProduct(req, res) {
     const { id } = req.params;
     const { name } = req.body;
 
-    const existingProduct = await db.Product.findOne({
-        where: {
-            name: name,
-            id: { [Sequelize.Op.ne]: id }
-        }
-    })
+    if (name !== undefined) {
+        const existingProduct = await db.Product.findOne({
+            where: {
+                name: name,
+                id: { [Sequelize.Op.ne]: id }
+            }
+        })
 
-    if (existingProduct) {
-        return res.status(400).json({
-            message: 'Tên sản phẩm đã tồn tại, vui lòng chọn tên khác'
-        });
+        if (existingProduct) {
+            return res.status(400).json({
+                message: 'Tên sản phẩm đã tồn tại, vui lòng chọn tên khác'
+            });
+        }
     }
+
     const updatedProduct = await db.Product.update(req.body, {
         where: { id }
     });
+
     if (updatedProduct[0] > 0) {
         return res.status(200).json({
             message: 'Update sản phẩm thành công'

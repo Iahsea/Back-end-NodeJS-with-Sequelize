@@ -66,7 +66,7 @@ export function AppRoute(app) {
     router.post('/brands',
         validateImageExists,
         asyncHandler(BrandController.insertBrand));
-    router.put('/brands',
+    router.put('/brands/:id',
         validateImageExists,
         asyncHandler(BrandController.updateBrand));
     router.delete('/brands/:id', asyncHandler(BrandController.deleteBrand));
