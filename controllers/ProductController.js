@@ -1,4 +1,4 @@
-import { Sequelize } from "sequelize"
+import { Model, Sequelize } from "sequelize"
 const { Op } = Sequelize;
 import db from "../models"
 
@@ -40,7 +40,12 @@ export async function getProducts(req, res) {
 
 export async function getProductById(req, res) {
     const { id } = req.params
-    const product = await db.Product.findByPk(id);
+    const product = await db.Product.findByPk(id, {
+        include: [{
+            model: db.ProductImage,
+            as: 'product_images'
+        }]
+    });
 
     if (!product) {
         return res.status(404).json({

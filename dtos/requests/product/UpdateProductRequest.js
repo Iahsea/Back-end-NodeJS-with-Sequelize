@@ -19,7 +19,7 @@ class UpdateProductRequest {
             name: Joi.string().optional(),
             price: Joi.number().positive().optional(), // Không bắt buộc nhưng nếu có thì phải > 0
             oldprice: Joi.number().positive().optional(),
-            image: Joi.string().uri().allow("").optional(), // URL hoặc rỗng
+            image: Joi.string().allow("").optional(), // URL hoặc rỗng
             description: Joi.string().optional(),
             specification: Joi.string().optional(),
             buyturn: Joi.number().integer().min(0).optional(),

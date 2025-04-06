@@ -11,10 +11,12 @@ import * as NewsDetailController from './controllers/NewsDetailController'
 import * as BannerController from './controllers/BannerController'
 import * as BannerDetailController from './controllers/BannerDetailController'
 import * as ImageController from './controllers/ImageController'
+import * as ProductImageController from './controllers/ProductImageController'
 
 import asyncHandler from './middlewares/asyncHandler'
 import validate from './middlewares/validate'
 import validateImageExists from './middlewares/validateImageExists'
+import uploadImageMiddleware from './middlewares/imageUpload'
 
 import InsertProductRequest from './dtos/requests/product/InsertProductRequest'
 import UpdateProductRequest from './dtos/requests/product/UpdateProductRequest'
@@ -25,8 +27,10 @@ import InsertNewsDetailRequest from './dtos/requests/newsdetail/InsertNewsDetail
 import UpdateNewsRequest from './dtos/requests/news/UpdateNewsRequest'
 import InsertBannerRequest from './dtos/requests/banner/InsertBannerRequest'
 import InsertBannerDetailRequest from './dtos/requests/banner_detail/InsertBannerDetailRequest'
+import InsertProductImageRequest from './dtos/requests/product_images/InsertProductImageRequest'
 
-import uploadImageMiddleware from './middlewares/imageUpload'
+
+
 
 export function AppRoute(app) {
     // User Routes
@@ -48,6 +52,15 @@ export function AppRoute(app) {
         validateImageExists,
         validate(UpdateProductRequest),
         asyncHandler(ProductController.updateProduct));
+
+    // ProductImage Routes
+    router.get('/product_images', asyncHandler(ProductImageController.getProductImages));
+    router.get('/product_images/:id', asyncHandler(ProductImageController.getProductImageById));
+    router.post('/product_images',
+        validate(InsertProductImageRequest),
+        asyncHandler(ProductImageController.insertProductImage));
+    // router.put('/product_images', asyncHandler(ProductImageController.updateProductImage));
+    router.delete('/product_images/:id', asyncHandler(ProductImageController.deleteProductImage));
 
     // Category Routes
     router.get('/categories', asyncHandler(CategoryController.getCategories));
@@ -138,6 +151,8 @@ export function AppRoute(app) {
     router.delete('/images/delete', asyncHandler(ImageController.deleteImage));
 
     router.get('/images/:fileName', asyncHandler(ImageController.viewImage));
+
+
 
     app.use('/api/', router)
 }

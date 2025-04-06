@@ -17,6 +17,40 @@ export async function uploadImages(req, res) {
     })
 }
 
+async function checkImageInUse(imageUrl) {
+    const modelFiles = {
+        User: 'avatar',
+        Category: 'image',
+        Brand: 'image',
+        Product: 'image',
+        News: 'image',
+        Banner: 'image'
+    };
+
+    console.log(">>>>> check modelsFiles = ", modelFiles);
+
+
+    const models = [db.User, db.Category, db.Brand, db.Product, db.News, db.Banner];
+    for (let model of models) {
+        const fieldName = modelFiles[model.name];
+        console.log("checl fieldName = ", fieldName);
+
+        let query = {};
+        query[fieldName] = imageUrl;
+        const result = await model.findOne({ where: query });
+        if (result) {
+            console.log(
+                `Found in model: ${model.name},
+                Field: ${fieldName},
+                Image URL: ${imageUrl}`
+            );
+            return true;
+        }
+    }
+    return false;
+}
+
+
 export async function deleteImage(req, res) {
     const { url: rawUrl } = req.body;
     const url = rawUrl.trim();
@@ -25,7 +59,7 @@ export async function deleteImage(req, res) {
         // Check if the ịmgarURL is still in use in many of the databas tables
         const isInUse = await checkImageInUse(url)
         if (isInUse) {
-            throw new Error('Ảnh vẫn đang được sử dụng trong cơ sở dũ liệu');
+            throw new Error('Ảnh vẫn đang được sử dụng trong cơ sở dữ liệu');
         }
         if (!url.startsWith('http://') && !url.startsWith('https://')) {
             // Assume url is a local filename
@@ -58,11 +92,3 @@ export async function viewImage(req, res) {
     })
 }
 
-async function checkImageInUse(imageUrl) {
-    const models = [db.Category, db.Brand, db.Product, db.News, db.Banner];
-    for (let model of models) {
-        const result = await model.findOne({ where: { image: imageUrl } });
-        if (result) return true;
-    }
-    return false;
-}

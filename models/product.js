@@ -25,6 +25,10 @@ module.exports = (sequelize, DataTypes) => {
       });
       Product.hasMany(models.Feedback, {
         foreignKey: 'product_id'
+      });
+      Product.hasMany(models.ProductImage, {
+        foreignKey: 'product_id',
+        as: 'product_images' // Thêm bí danh 'as' để sử dụng trong truy vấn
       })
     }
   }
