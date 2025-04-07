@@ -33,6 +33,8 @@ import UpdateNewsRequest from './dtos/requests/news/UpdateNewsRequest'
 import InsertBannerRequest from './dtos/requests/banner/InsertBannerRequest'
 import InsertBannerDetailRequest from './dtos/requests/banner_detail/InsertBannerDetailRequest'
 import InsertProductImageRequest from './dtos/requests/product_images/InsertProductImageRequest'
+import InsertCartRequest from './dtos/requests/cart/InsertCartRequest'
+import InsertCartItemRequest from './dtos/requests/cart_item/InsertCartItemRequest'
 
 
 
@@ -108,16 +110,21 @@ export function AppRoute(app) {
     // Cart Routes
     router.get('/carts', asyncHandler(CartController.getCarts));
     router.get('/carts/:id', asyncHandler(CartController.getCartById));
-    router.post('/carts', asyncHandler(CartController.insertCart));
-    router.put('/carts/:id', asyncHandler(CartController.updateCart));
+    router.post('/carts',
+        validate(InsertCartRequest),
+        asyncHandler(CartController.insertCart));
+    // router.put('/carts/:id', asyncHandler(CartController.updateCart));
     router.delete('/carts/:id', asyncHandler(CartController.deleteCart));
 
     // Cart Item Routes
-    router.get('/cart-items', asyncHandler(CartItemController.getCartItems));
-    router.get('/cart-items/:id', asyncHandler(CartItemController.getCartItemById));
-    router.post('/cart-items', asyncHandler(CartItemController.insertCartItem));
-    router.put('/cart-items/:id', asyncHandler(CartItemController.updateCartItem));
-    router.delete('/cart-items/:id', asyncHandler(CartItemController.deleteCartItem));
+    router.get('/cart_items', asyncHandler(CartItemController.getCartItems));
+    router.get('/cart_items/:id', asyncHandler(CartItemController.getCartItemById));
+    router.get('/cart_items/carts/:cart_id', asyncHandler(CartItemController.getCartItemByCartId));
+    router.post('/cart_items',
+        validate(InsertCartItemRequest),
+        asyncHandler(CartItemController.insertCartItem));
+    router.put('/cart_items/:id', asyncHandler(CartItemController.updateCartItem));
+    router.delete('/cart_items/:id', asyncHandler(CartItemController.deleteCartItem));
 
 
 
