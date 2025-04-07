@@ -12,6 +12,11 @@ import * as BannerController from './controllers/BannerController'
 import * as BannerDetailController from './controllers/BannerDetailController'
 import * as ImageController from './controllers/ImageController'
 import * as ProductImageController from './controllers/ProductImageController'
+import * as CartController from './controllers/CartController'
+import * as CartItemController from './controllers/CartItemController'
+
+
+
 
 import asyncHandler from './middlewares/asyncHandler'
 import validate from './middlewares/validate'
@@ -99,6 +104,22 @@ export function AppRoute(app) {
     router.post('/order-details', asyncHandler(OrderDetailController.insertOrderDetail));
     router.put('/order-details', asyncHandler(OrderDetailController.updateOrderDetail));
     router.delete('/order-details/:id', asyncHandler(OrderDetailController.deleteOrderDetail));
+
+    // Cart Routes
+    router.get('/carts', asyncHandler(CartController.getCarts));
+    router.get('/carts/:id', asyncHandler(CartController.getCartById));
+    router.post('/carts', asyncHandler(CartController.insertCart));
+    router.put('/carts/:id', asyncHandler(CartController.updateCart));
+    router.delete('/carts/:id', asyncHandler(CartController.deleteCart));
+
+    // Cart Item Routes
+    router.get('/cart-items', asyncHandler(CartItemController.getCartItems));
+    router.get('/cart-items/:id', asyncHandler(CartItemController.getCartItemById));
+    router.post('/cart-items', asyncHandler(CartItemController.insertCartItem));
+    router.put('/cart-items/:id', asyncHandler(CartItemController.updateCartItem));
+    router.delete('/cart-items/:id', asyncHandler(CartItemController.deleteCartItem));
+
+
 
     // News Routes
     router.get('/news', asyncHandler(NewsController.getNewsArticles));
