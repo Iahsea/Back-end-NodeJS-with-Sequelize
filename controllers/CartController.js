@@ -35,12 +35,16 @@ export async function getCarts(req, res) {
 
 export async function getCartById(req, res) {
     const { id } = req.params;
-    const cart = await db.Cart.findByPk(id);
+    const cart = await db.Cart.findByPk(id, {
+        include: [{
+            model: db.CartItem,
+            as: 'cart_items'
+        }],
+    });
 
     if (!cart) {
         return res.status(404).json({ message: 'Giỏ hàng không tìm thấy' });
     }
-
     return res.status(200).json({
         message: 'Lấy thông tin giỏ hàng thành công',
         data: cart
@@ -48,11 +52,22 @@ export async function getCartById(req, res) {
 }
 
 export async function insertCart(req, res) {
-    const { session_id } = req.body;
+    const { session_id, user_id } = req.body;
+
+    if ((session_id && user_id) || (!session_id && !user_id)) {
+        return res.status(400).json({
+            message: 'Chỉ được cung cấp một trong hai giá trị session_id hoặc user_id',
+        });
+    }
 
     const existingCart = await db.Cart.findOne({
-        where: { session_id }
-    })
+        where: {
+            [Op.or]: [
+                { session_id: session_id ? session_id : null },
+                { user_id: user_id ? user_id : null }
+            ]
+        }
+    });
 
     if (existingCart) {
         return res.status(409).json({
@@ -77,6 +92,64 @@ export async function insertCart(req, res) {
 //         return res.status(404).json({ message: 'Giỏ hàng không tìm thấy' });
 //     }
 // }
+
+export const checkoutCart = async (req, res) => {
+    const { cart_id, total, note } = req.body;
+    const transaction = await db.sequelize.transaction();
+
+    try {
+        const cart = await db.Cart.findByPk(cart_id, {
+            include: [{
+                model: db.CartItem,
+                as: 'cart_items',
+                include: [{
+                    model: db.Product,
+                    as: 'product'
+                }]
+            }]
+        });
+        if (!cart || !cart.cart_items.length) {
+            return res.status(404).json({ message: 'Giỏ hàng không tồn tại hoặc trống' });
+        }
+
+        const newOrder = await db.Order.create({
+            user_id: cart.user_id,
+            session_id: cart.session_id,
+            total: total || cart.cart_items.reduce((acc, item) => acc + item.quantity * item.product.price, 0),
+            note: note
+        }, { transaction: transaction });
+
+
+        for (let item of cart.cart_items) {
+            await db.OrderDetail.create({
+                order_id: newOrder.id,
+                product_id: item.product_id,
+                quantity: item.quantity,
+                price: item.product.price
+            }, { transaction: transaction });
+        }
+
+        await db.CartItem.destroy({
+            where: { cart_id: cart_id }
+        }, { transaction: transaction });
+
+        await cart.destroy({ transaction: transaction });
+
+        await transaction.commit();
+
+        res.status(201).json({
+            message: "Thanh toán giỏ hàng thành công",
+            data: newOrder
+        })
+    } catch (error) {
+        await transaction.rollback();
+        res.status(500).json({
+            message: "Lỗi khi thanh toán giỏ hàng",
+            error: error.message
+        });
+    }
+}
+
 
 export async function deleteCart(req, res) {
     const { id } = req.params;

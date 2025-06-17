@@ -9,35 +9,51 @@ export async function getOrders(req, res) {
 }
 
 export async function getOrderById(req, res) {
+    const { id } = req.params;
+
+    const order = await db.Order.findByPk(id, {
+        attributes: ['id', 'user_id', 'status', 'note', 'total', 'created_at', 'updated_at'], // ← loại bỏ brand_id
+        include: [{
+            model: db.OrderDetail,
+            as: 'order_details'
+        }]
+    })
+
+    if (!order) {
+        return res.status(404).json({
+            message: 'Đơn hàng không tìm thấy'
+        });
+    }
     res.status(200).json({
-        message: 'Lấy thông tin đơn hàng thành công'
+        message: 'Lấy thông tin đơn hàng thành công',
+        data: order
     });
 }
 
-export async function insertOrder(req, res) {
-    const userId = req.body.user_id;
+// export async function insertOrder(req, res) {
+//     const userId = req.body.user_id;
 
-    const userExists = await db.User.findByPk(userId)
+//     const userExists = await db.User.findByPk(userId)
 
-    if (!userExists) {
-        return res.status(404).json({
-            message: 'Người dùng không tồn tại'
-        });
-    }
+//     if (!userExists) {
+//         return res.status(404).json({
+//             message: 'Người dùng không tồn tại'
+//         });
+//     }
 
-    const newOrder = await db.Order.create(req.body);
+//     const newOrder = await db.Order.create(req.body);
 
-    if (newOrder) {
-        return res.status(201).json({
-            message: 'Thêm mới đơn hàng thành công',
-            order: newOrder
-        });
-    } else {
-        return res.status(400).json({
-            message: 'Không thể thêm mới đơn hàng'
-        });
-    }
-}
+//     if (newOrder) {
+//         return res.status(201).json({
+//             message: 'Thêm mới đơn hàng thành công',
+//             order: newOrder
+//         });
+//     } else {
+//         return res.status(400).json({
+//             message: 'Không thể thêm mới đơn hàng'
+//         });
+//     }
+// }
 
 export async function updateOrder(req, res) {
     const { id } = req.params;

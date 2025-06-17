@@ -57,6 +57,12 @@ export async function insertCartItem(req, res) {
         });
     }
 
+    if (productExists.quantity < quantity) {
+        return res.status(400).json({
+            message: 'Sản phẩm không đủ số lượng yêu cầu',
+        });
+    }
+
 
     const cartExists = await db.Cart.findByPk(cart_id)
 
@@ -66,37 +72,38 @@ export async function insertCartItem(req, res) {
         });
     }
 
-    const cartItemExists = await db.CartItem.findOne({
+    const existingCartItem = await db.CartItem.findOne({
         where: {
             product_id: product_id,
             cart_id: cart_id
         }
     })
 
-    if (quantity === 0) {
-        const deleteCartItem = await db.CartItem.destroy({
-            where: { id: cartItemExists.id }
-        })
-        return res.status(201).json({
-            message: 'Sản phẩm đã về số lượng là và bị xóa',
-            data: deleteCartItem
-        });
+    if (existingCartItem) {
+        if (quantity === 0) {
+            await existingCartItem.destroy();
+            return res.status(200).json({
+                message: 'Mục trong giỏ hàng đã được xoá'
+            });
+        } else {
+            existingCartItem.quantity = quantity;
+            await existingCartItem.save();
+            return res.status(200).json({
+                message: 'Cập nhật số lượng mục trong giỏ hàng thành công',
+                data: existingCartItem
+            });
+        }
+    } else {
+        if (quantity > 0) {
+            const newCartItem = await db.CartItem.create(req.body);
+            return res.status(201).json({
+                message: 'Thêm mới mục trong giỏ hàng thành công',
+                data: newCartItem
+            });
+        }
     }
-
-    if (cartItemExists) {
-        const itemUpdate = await db.CartItem.update(req.body, {
-            where: { id: cartItemExists.id }
-        })
-        return res.status(201).json({
-            message: 'Update sản phẩm trong giỏ hàng thành công',
-            data: itemUpdate
-        });
-    }
-
-    const item = await db.CartItem.create(req.body);
-    return res.status(201).json({
-        message: 'Thêm sản phẩm vào giỏ hàng thành công',
-        data: item
+    return res.status(400).json({
+        message: 'Không thể thêm mục giỏ hàng với số lượng bằng 0',
     });
 }
 

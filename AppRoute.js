@@ -94,9 +94,11 @@ export function AppRoute(app) {
     // Order Routes
     router.get('/orders', asyncHandler(OrderController.getOrders));
     router.get('/orders/:id', asyncHandler(OrderController.getOrderById));
+    /*
     router.post('/orders',
         validate(InsertOrderRequest),
         asyncHandler(OrderController.insertOrder));
+    */
     router.put('/orders', asyncHandler(OrderController.updateOrder));
     router.delete('/orders/:id', asyncHandler(OrderController.deleteOrder));
 
@@ -113,6 +115,7 @@ export function AppRoute(app) {
     router.post('/carts',
         validate(InsertCartRequest),
         asyncHandler(CartController.insertCart));
+    router.post('/carts/checkout', asyncHandler(CartController.checkoutCart));
     // router.put('/carts/:id', asyncHandler(CartController.updateCart));
     router.delete('/carts/:id', asyncHandler(CartController.deleteCart));
 
