@@ -27,6 +27,7 @@ import InsertProductRequest from './dtos/requests/product/InsertProductRequest'
 import UpdateProductRequest from './dtos/requests/product/UpdateProductRequest'
 import InsertOrderRequest from './dtos/requests/order/InsertOrderRequest'
 import InsertUserRequest from './dtos/requests/users/InsertUserRequest'
+import LoginUserRequest from './dtos/requests/users/LoginUserRequest'
 import InsertNewsRequest from './dtos/requests/news/InsertNewsRequest'
 import InsertNewsDetailRequest from './dtos/requests/newsdetail/InsertNewsDetailRequest'
 import UpdateNewsRequest from './dtos/requests/news/UpdateNewsRequest'
@@ -35,15 +36,20 @@ import InsertBannerDetailRequest from './dtos/requests/banner_detail/InsertBanne
 import InsertProductImageRequest from './dtos/requests/product_images/InsertProductImageRequest'
 import InsertCartRequest from './dtos/requests/cart/InsertCartRequest'
 import InsertCartItemRequest from './dtos/requests/cart_item/InsertCartItemRequest'
+import UpdateOrderRequest from './dtos/requests/order/UpdateOrderRequest'
 
 
 
 
 export function AppRoute(app) {
     // User Routes
-    router.post('/users',
+    router.post('/users/register',
         validate(InsertUserRequest),
-        asyncHandler(UserController.insertUser)
+        asyncHandler(UserController.registerUser)
+    );
+    router.post('/users/login',
+        validate(LoginUserRequest),
+        asyncHandler(UserController.loginUser)
     );
 
     // Product Routes
@@ -99,7 +105,9 @@ export function AppRoute(app) {
         validate(InsertOrderRequest),
         asyncHandler(OrderController.insertOrder));
     */
-    router.put('/orders', asyncHandler(OrderController.updateOrder));
+    router.put('/orders',
+        validate(UpdateOrderRequest),
+        asyncHandler(OrderController.updateOrder));
     router.delete('/orders/:id', asyncHandler(OrderController.deleteOrder));
 
     // Order Detail Routes
