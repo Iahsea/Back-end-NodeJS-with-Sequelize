@@ -1,10 +1,45 @@
-import { Sequelize } from "sequelize"
+import { Sequelize, where } from "sequelize"
+const { Op } = Sequelize;
 import db from "../models"
+import OrderStatus from "../constants/OrderStatus";
 
 
 export async function getOrders(req, res) {
-    res.status(200).json({
-        message: 'Lấy danh sách đơn hàng thành công'
+    const { search = '', page = 1, status } = req.query;
+    const pageSize = 6;
+    const offset = (page - 1) * pageSize;
+
+    let whereClause = {};
+    if (search.trim() !== '') {
+        whereClause = {
+            [Op.or]: [
+                { note: { [Op.like]: `%${search}%` } },
+            ]
+        };
+    }
+
+    if (status) {
+        whereClause.status = status
+    }
+    const [orders, totalOrders] = await Promise.all([
+        db.Order.findAll({
+            attributes: ['id', 'user_id', 'session_id', 'status', 'note', 'total', 'created_at', 'updated_at'],
+            where: whereClause,
+            limit: pageSize,
+            offset: offset,
+            order: [['created_at', 'DESC']]
+        }),
+        db.Order.count({
+            where: whereClause
+        })
+    ]);
+
+    return res.status(200).json({
+        message: 'Lấy danh sách đơn hàng thành công',
+        data: orders,
+        currentPage: parseInt(page, 10),
+        totalPages: Math.ceil(totalOrders / pageSize),
+        totalOrders
     });
 }
 
@@ -12,7 +47,7 @@ export async function getOrderById(req, res) {
     const { id } = req.params;
 
     const order = await db.Order.findByPk(id, {
-        attributes: ['id', 'user_id', 'status', 'note', 'total', 'created_at', 'updated_at'], // ← loại bỏ brand_id
+        attributes: ['id', 'user_id', 'session_id', 'status', 'note', 'total', 'created_at', 'updated_at'], // ← loại bỏ brand_id
         include: [{
             model: db.OrderDetail,
             as: 'order_details'
@@ -74,13 +109,14 @@ export async function updateOrder(req, res) {
 
 export async function deleteOrder(req, res) {
     const { id } = req.params;
-    const deleted = await db.Order.destroy({
-        where: { id }
-    });
 
-    if (deleted) {
+    const [updated] = await db.Order.update({ status: OrderStatus.FAILED }, {
+        where: { id }
+    })
+
+    if (updated) {
         res.status(200).json({
-            message: 'Xóa đơn hàng thành công'
+            message: 'Đơn hàng đã được đánh dấu là FAILED'
         });
     } else {
         res.status(404).json({

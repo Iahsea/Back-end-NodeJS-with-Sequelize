@@ -17,10 +17,19 @@ module.exports = {
           key: 'id',
         },
       },
+      session_id: {
+        type: Sequelize.TEXT
+      },
       status: {
         type: Sequelize.INTEGER
       },
       note: {
+        type: Sequelize.TEXT
+      },
+      address: {
+        type: Sequelize.TEXT
+      },
+      phone: {
         type: Sequelize.TEXT
       },
       total: {
