@@ -1,8 +1,7 @@
 import { Sequelize } from "sequelize";
 const { Op } = Sequelize;
 import db from "../models";
-import path from 'path'
-import fs from 'fs'
+import { BannerStatus } from "../constants";
 
 export const getBanners = async (req, res) => {
     const { search = '', page = 1 } = req.query;
@@ -65,7 +64,13 @@ export async function insertBanner(req, res) {
         });
     }
 
-    const banner = await db.Banner.create(req.body);
+    const bannerData = {
+        ...req.body,
+        status: BannerStatus.ACTIVE
+    }
+
+    const banner = await db.Banner.create(bannerData);
+
     res.status(201).json({
         message: 'Thêm mới banner thành công',
         data: banner

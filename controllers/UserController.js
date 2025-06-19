@@ -5,6 +5,8 @@ import InsertUserRequest from "../dtos/requests/users/InsertUserRequest";
 import ResponseUser from "../dtos/responses/user/ResponseUser";
 import argon2 from 'argon2';
 import { UserRole } from "../constants";
+import jwt from 'jsonwebtoken'
+require('dotenv').config();
 
 // Thêm mới người dùng
 export async function registerUser(req, res) {
@@ -68,9 +70,22 @@ export async function loginUser(req, res) {
 
     if (!PasswordValid) {
         return res.status(401).json({
-            message: 'Mật khẩu không chính xác'
+            message: 'Tên hoặc mật khẩu không chính xác'
         });
     }
+
+    // Generate a JWT(JSON Web Token)
+
+    const token = jwt.sign(
+        {
+            id: user.id, //most important
+            //role: user.role
+        },
+        process.env.JWT_SECRET,
+        {
+            expiresIn: process.env.JWT_EXPIRATION
+        }
+    )
 
     // Nếu bạn muốn tạo token JWT, có thể thêm ở đây
     // const token = generateJWT(user);
@@ -79,6 +94,7 @@ export async function loginUser(req, res) {
         message: 'Đăng nhập thành công',
         data: {
             user: new ResponseUser(user),
+            token
         }
         // token: token, // nếu có token
     });

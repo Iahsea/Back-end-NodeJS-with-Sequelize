@@ -1,8 +1,7 @@
 import { Sequelize, where } from "sequelize"
 const { Op } = Sequelize;
 import db from "../models"
-import OrderStatus from "../constants/OrderStatus";
-
+import { OrderStatus } from "../constants";
 
 export async function getOrders(req, res) {
     const { search = '', page = 1, status } = req.query;
