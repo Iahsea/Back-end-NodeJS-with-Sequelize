@@ -27,6 +27,7 @@ module.exports = (sequelize, DataTypes) => {
     avatar: DataTypes.STRING,
     phone: DataTypes.INTEGER,
     is_locked: DataTypes.INTEGER,
+    password_changed_at: DataTypes.DATE,
     created_at: DataTypes.DATE,
     updated_at: DataTypes.DATE
   }, {

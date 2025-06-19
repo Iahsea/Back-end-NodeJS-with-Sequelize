@@ -50,6 +50,11 @@ export function AppRoute(app) {
         validate(LoginUserRequest),
         asyncHandler(UserController.loginUser)
     );
+    router.post('/users/:id',
+        requireRoles([UserRole.USER, UserRole.ADMIN]),
+        asyncHandler(UserController.updateUser)
+    );
+
 
     // Product Routes
     router.get('/products', asyncHandler(ProductController.getProducts));

@@ -6,7 +6,10 @@ import ResponseUser from "../dtos/responses/user/ResponseUser";
 import argon2 from 'argon2';
 import { UserRole } from "../constants";
 import jwt from 'jsonwebtoken'
+import { now } from "sequelize/lib/utils";
 require('dotenv').config();
+import os from 'os';
+import { getAvatarUrl } from "../helpers/imageHelper";
 
 // Thêm mới người dùng
 export async function registerUser(req, res) {
@@ -80,6 +83,7 @@ export async function loginUser(req, res) {
         {
             id: user.id, //most important
             //role: user.role
+            iat: Math.floor(Date.now() / 1000) // Thêm thời điểm tạo token
         },
         process.env.JWT_SECRET,
         {
@@ -103,17 +107,52 @@ export async function loginUser(req, res) {
 // Cập nhật thông tin người dùng
 export async function updateUser(req, res) {
     const { id } = req.params;
-    const updatedUser = await db.User.update(req.body, {
-        where: { id }
-    });
+    const { name, avatar, old_password, new_password } = req.body;
 
-    if (updatedUser[0] > 0) {
-        return res.status(200).json({
-            message: 'Cập nhật người dùng thành công'
-        });
-    } else {
-        return res.status(400).json({
-            message: 'Người dùng không tồn tại'
+    if (req.user.id != id) {
+        return res.status(403).json({
+            message: 'Không được phép cập nhật thông tin của người dùng khác'
         });
     }
+
+    const user = await db.User.findByPk(id);
+    if (!user) {
+        return res.status(404).json({
+            message: 'Người dùng không tìm thấy'
+        });
+    }
+
+    // Cập nhật mật khẩu nếu cần
+
+    if (new_password && old_password) {
+        // Kiểm tra mật khẩu cũ
+        const passwordValid = await argon2.verify(user.password, old_password);
+
+        if (!passwordValid) {
+            return res.status(401).json({
+                message: 'Mật khẩu cũ không chính xác'
+            });
+        }
+
+        // Hash mật khẩu mới
+        user.password = await argon2.hash(new_password);
+        user.password_changed_at = new Date(); // Cập nhật thời gian thay đổi mật khẩu
+    } else if (new_password || old_password) {
+        // Nếu chỉ có một trong hai trường mật khẩu mới hoặc cũ được gửi lên
+        return res.status(400).json({
+            message: 'Cần cả mật khẩu mới và mật khẩu cũ để cập nhật mật khẩu'
+        });
+    }
+
+    user.name = name || user.name;
+    user.avatar = avatar || user.avatar;
+
+    await user.save()
+
+    user.avatar = getAvatarUrl(user.avatar);
+
+    return res.status(200).json({
+        message: 'Cập nhật người dùng thành công',
+        data: user
+    });
 }
