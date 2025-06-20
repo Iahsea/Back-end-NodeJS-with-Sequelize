@@ -1,6 +1,7 @@
 import { Sequelize } from "sequelize";
 const { Op } = Sequelize;
 import db from "../models";
+import { getAvatarUrl } from "../helpers/imageHelper";
 
 export async function getProductImages(req, res) {
     const { product_id, page = 1 } = req.query;
@@ -28,7 +29,10 @@ export async function getProductImages(req, res) {
 
     return res.status(200).json({
         message: 'Lấy danh sách ảnh sản phẩm thành công',
-        data: productImages,
+        data: productImages.map(productImage => ({
+            ...productImage.get({ plain: true }),
+            image_url: getAvatarUrl(productImage.image_url)
+        })),
         currentPage: parseInt(page, 10),
         totalPages: Math.ceil(totalProductImages / pageSize),
         totalProductImages
@@ -47,7 +51,10 @@ export async function getProductImageById(req, res) {
 
     res.status(200).json({
         message: 'Lấy thông tin ảnh sản phẩm thành công',
-        data: productImage
+        data: {
+            ...productImage.get({ plain: true }),
+            image_url: getAvatarUrl(productImage.image_url)
+        }
     });
 }
 

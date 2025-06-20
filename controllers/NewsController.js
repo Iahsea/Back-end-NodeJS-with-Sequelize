@@ -30,7 +30,10 @@ export const getNewsArticles = async (req, res) => {
 
     return res.status(200).json({
         message: 'Lấy danh sách tin tức thành công',
-        data: news,
+        data: news.map(n => ({
+            ...n.get({ plain: true }),
+            image: getAvatarUrl(n.image)
+        })),
         currentPage: parseInt(page, 10),
         totalPages: Math.ceil(totalNews / pageSize),
         totalNews
@@ -49,7 +52,10 @@ export async function getNewsArticleById(req, res) {
 
     res.status(200).json({
         message: 'Lấy thông tin tin tức thành công',
-        data: news
+        data: {
+            ...news.get({ plain: true }),
+            image: getAvatarUrl(news.image)
+        }
     });
 }
 

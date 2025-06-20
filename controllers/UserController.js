@@ -149,10 +149,40 @@ export async function updateUser(req, res) {
 
     await user.save()
 
-    user.avatar = getAvatarUrl(user.avatar);
-
     return res.status(200).json({
         message: 'Cập nhật người dùng thành công',
-        data: user
+        data: {
+            ...user.get({ plain: true }),
+            avatar: getAvatarUrl(user.avatar)
+        }
     });
+}
+
+
+export const getUserById = async (req, res) => {
+    const { id } = req.params;
+
+    if (req.user.id != id && req.user.role !== UserRole.ADMIN) {
+        return res.status(403).json({
+            message: 'Chỉ người dùng hoặc quản trị viên mới có quyền truy cập thông tin này'
+        });
+    }
+
+    const user = await db.User.findByPk(id, {
+        attributes: { exclude: ['password'] }
+    });
+
+    if (!user) {
+        return res.status(404).json({
+            message: 'Người dùng không tìm thấy'
+        });
+    }
+
+    return res.status(200).json({
+        message: 'Lấy thông tin người dùng thành công',
+        data: {
+            ...user.get({ plain: true }),
+            avatar: getAvatarUrl(user.avatar)
+        }
+    })
 }

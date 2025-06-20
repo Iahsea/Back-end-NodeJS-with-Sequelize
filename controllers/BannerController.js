@@ -2,6 +2,7 @@ import { Sequelize } from "sequelize";
 const { Op } = Sequelize;
 import db from "../models";
 import { BannerStatus } from "../constants";
+import { getAvatarUrl } from "../helpers/imageHelper";
 
 export const getBanners = async (req, res) => {
     const { search = '', page = 1 } = req.query;
@@ -28,7 +29,10 @@ export const getBanners = async (req, res) => {
 
     return res.status(200).json({
         message: 'Lấy danh sách banner thành công',
-        data: banners,
+        data: banners.map(banner => ({
+            ...banner.get({ plain: true }),
+            image: getAvatarUrl(banner.image)
+        })),
         currentPage: parseInt(page, 10),
         totalPages: Math.ceil(totalBanners / pageSize),
         totalBanners
@@ -47,7 +51,10 @@ export async function getBannerById(req, res) {
 
     res.status(200).json({
         message: 'Lấy thông tin banner thành công',
-        data: banner
+        data: {
+            ...banner.get({ plain: true }),
+            image: getAvatarUrl(banner.image)
+        }
     });
 }
 

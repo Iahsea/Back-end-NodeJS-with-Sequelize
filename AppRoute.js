@@ -54,6 +54,10 @@ export function AppRoute(app) {
         requireRoles([UserRole.USER, UserRole.ADMIN]),
         asyncHandler(UserController.updateUser)
     );
+    router.post('/users/me/:id',
+        requireRoles([UserRole.USER, UserRole.ADMIN]),
+        asyncHandler(UserController.getUserById)
+    );
 
 
     // Product Routes

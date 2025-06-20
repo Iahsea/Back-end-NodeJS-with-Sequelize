@@ -1,6 +1,7 @@
 import { Model, Sequelize } from "sequelize"
 const { Op } = Sequelize;
 import db from "../models"
+import { getAvatarUrl } from "../helpers/imageHelper";
 
 export async function getProducts(req, res) {
     // const products = await db.Product.findAll()
@@ -30,7 +31,10 @@ export async function getProducts(req, res) {
     ]);
     return res.status(200).json({
         message: 'lấy danh sách sản phẩm thành công',
-        data: products,
+        data: products.map(product => ({
+            ...product.get({ plain: true }),
+            image: getAvatarUrl(product.image)
+        })),
         currentPage: parseInt(page, 10),
         totalPages: Math.ceil(totalProducts / pageSize),
         totalProducts
@@ -54,7 +58,10 @@ export async function getProductById(req, res) {
     }
     res.status(200).json({
         message: 'Lấy thông tin sản phẩm thành công',
-        data: product
+        data: {
+            ...product.get({ plain: true }),
+            image: getAvatarUrl(product.image)
+        }
     })
 }
 
@@ -74,7 +81,10 @@ export async function insertProduct(req, res) {
     // await db.Product.create
     return res.status(201).json({
         message: 'Thêm mới sản phẩm thành công',
-        data: product
+        data: {
+            ...product.get({ plain: true }),
+            image: getAvatarUrl(product.image)
+        }
     })
 }
 
