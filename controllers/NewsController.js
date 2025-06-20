@@ -1,6 +1,7 @@
 import { Sequelize } from "sequelize"
 const { Op } = Sequelize;
 import db from "../models"
+import { getAvatarUrl } from "../helpers/imageHelper";
 
 export const getNewsArticles = async (req, res) => {
     const { search = '', page = 1 } = req.query;
@@ -34,9 +35,9 @@ export const getNewsArticles = async (req, res) => {
             ...n.get({ plain: true }),
             image: getAvatarUrl(n.image)
         })),
-        currentPage: parseInt(page, 10),
-        totalPages: Math.ceil(totalNews / pageSize),
-        totalNews
+        current_page: parseInt(page, 10),
+        total_pages: Math.ceil(totalNews / pageSize),
+        total: totalNews
     });
 }
 

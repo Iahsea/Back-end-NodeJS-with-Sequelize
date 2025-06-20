@@ -36,9 +36,9 @@ export async function getOrders(req, res) {
     return res.status(200).json({
         message: 'Lấy danh sách đơn hàng thành công',
         data: orders,
-        currentPage: parseInt(page, 10),
-        totalPages: Math.ceil(totalOrders / pageSize),
-        totalOrders
+        current_page: parseInt(page, 10),
+        total_pages: Math.ceil(totalOrders / pageSize),
+        total: totalOrders
     });
 }
 

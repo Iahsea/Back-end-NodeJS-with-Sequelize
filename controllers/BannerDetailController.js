@@ -18,9 +18,9 @@ export const getBannerDetails = async (req, res) => {
     return res.status(200).json({
         message: "Lấy danh sách Banner Detail thành công",
         data: bannerDetails,
-        currentPage: parseInt(page, 10),
-        totalPages: Math.ceil(totalBannerDetails / pageSize),
-        totalBannerDetails
+        current_page: parseInt(page, 10),
+        total_pages: Math.ceil(totalBannerDetails / pageSize),
+        total: totalBannerDetails
     });
 };
 

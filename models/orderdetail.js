@@ -30,7 +30,9 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'OrderDetail',
     tableName: 'order_details',
-    underscored: true
+    underscored: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
   });
   return OrderDetail;
 };

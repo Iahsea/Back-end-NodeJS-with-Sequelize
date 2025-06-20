@@ -33,9 +33,9 @@ export const getBanners = async (req, res) => {
             ...banner.get({ plain: true }),
             image: getAvatarUrl(banner.image)
         })),
-        currentPage: parseInt(page, 10),
-        totalPages: Math.ceil(totalBanners / pageSize),
-        totalBanners
+        current_page: parseInt(page, 10),
+        total_pages: Math.ceil(totalBanners / pageSize),
+        total: totalBanners
     });
 };
 
