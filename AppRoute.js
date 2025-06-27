@@ -19,7 +19,6 @@ import asyncHandler from './middlewares/asyncHandler'
 import validate from './middlewares/validate'
 import validateImageExists from './middlewares/validateImageExists'
 import uploadImageMiddleware from './middlewares/imageUpload'
-import { requireRoles } from './middlewares/jwtMiddleWare'
 
 import InsertProductRequest from './dtos/requests/product/InsertProductRequest'
 import UpdateProductRequest from './dtos/requests/product/UpdateProductRequest'
@@ -36,6 +35,7 @@ import InsertCartRequest from './dtos/requests/cart/InsertCartRequest'
 import InsertCartItemRequest from './dtos/requests/cart_item/InsertCartItemRequest'
 import UpdateOrderRequest from './dtos/requests/order/UpdateOrderRequest'
 import { UserRole } from './constants'
+import { requireRoles } from './middlewares/jwtMiddleware'
 
 
 
@@ -176,7 +176,7 @@ export function AppRoute(app) {
     router.get('/cart_items/:id', asyncHandler(CartItemController.getCartItemById));
     router.get('/cart_items/carts/:cart_id', asyncHandler(CartItemController.getCartItemByCartId));
     router.post('/cart_items',
-        requireRoles([UserRole.USER]),
+        requireRoles([UserRole.USER, UserRole.ADMIN]),
         validate(InsertCartItemRequest),
         asyncHandler(CartItemController.insertCartItem)
     );

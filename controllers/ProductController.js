@@ -1,4 +1,4 @@
-import { Model, Sequelize } from "sequelize"
+import { Model, Sequelize, where } from "sequelize"
 const { Op } = Sequelize;
 import db from "../models"
 import { getAvatarUrl } from "../helpers/imageHelper";
@@ -18,9 +18,27 @@ export async function getProducts(req, res) {
             ]
         };
     }
+
+    // Khởi tạo `whereClause` cho thuộc tính động
+    let attributeWhereClause = {};
+    if (search.trim() !== '') {
+        attributeWhereClause = {
+            value: { [Op.like]: `%${search}` }
+        };
+    }
+
     const [products, totalProducts] = await Promise.all([
         db.Product.findAll({
             where: whereClause,
+            include: [
+                {
+                    model: db.ProductAttributeValue,
+                    as: "attributes",
+                    include: [{ model: db.Attribute }],
+                    where: attributeWhereClause,
+                    required: false // Không bắt buộc sản phẩm nào cũng có thuộc tính         
+                }
+            ],
             limit: pageSize,
             offset: offset,
             // Consider adding `order` if you need shorting
@@ -33,7 +51,11 @@ export async function getProducts(req, res) {
         message: 'lấy danh sách sản phẩm thành công',
         data: products.map(product => ({
             ...product.get({ plain: true }),
-            image: getAvatarUrl(product.image)
+            image: getAvatarUrl(product.image),
+            attributes: product.attributes.map(attr => ({
+                name: attr.Attribute?.name || '', // dùng optional chaining để tránh lỗi
+                value: attr.value
+            }))
         })),
         current_page: parseInt(page, 10),
         total_pages: Math.ceil(totalProducts / pageSize),
@@ -45,10 +67,23 @@ export async function getProducts(req, res) {
 export async function getProductById(req, res) {
     const { id } = req.params
     const product = await db.Product.findByPk(id, {
-        include: [{
-            model: db.ProductImage,
-            as: 'product_images'
-        }]
+        include: [
+            {
+                model: db.ProductImage,
+                as: 'product_images'
+            },
+            {
+                model: db.ProductAttributeValue,
+                as: "attributes",
+                include: [
+                    {
+                        model: db.Attribute, // Bao gồm tên của thuộc tính từ bảng Attribute
+                        attributes: ['name'] // Lấy tên thuộc tính
+                    }
+                ]
+            }
+
+        ]
     });
 
     if (!product) {
@@ -66,30 +101,90 @@ export async function getProductById(req, res) {
 }
 
 export async function insertProduct(req, res) {
-    const { name } = req.body;
+
+    const { name, attributes = [], ...productData } = req.body;
+
     const productExists = await db.Product.findOne({
         where: { name }
     })
 
     if (productExists) {
         return res.status(400).json({
-            message: 'Tên sản phẩm đã tồn tại, vui lòng chọn tên khác'
+            message: 'Tên sản phẩm đã tồn tại, vui lòng chọn tên khác',
+            data: productExists
         })
     }
 
-    const product = await db.Product.create(req.body)
-    // await db.Product.create
-    return res.status(201).json({
-        message: 'Thêm mới sản phẩm thành công',
-        data: {
-            ...product.get({ plain: true }),
-            image: getAvatarUrl(product.image)
+    try {
+        // Tạo sản phẩm mới trong bảng products
+        const product = await db.Product.create(req.body)
+
+        for (const attr of attributes) {
+            // Tìm hoặc tạo thuộc tính trong bảng `attributes`
+            const [attribute] = await db.Attribute.findOrCreate({
+                where: { name: attr.name }
+            });
+
+            // Thêm giá trị thuộc tính vào bảng product_attribute_values
+            await db.ProductAttributeValue.create({
+                product_id: product.id,
+                attribute_id: attribute.id,
+                value: attr.value
+            });
         }
-    })
+
+        return res.status(201).json({
+            message: 'Thêm mới sản phẩm thành công',
+            data: {
+                ...product.get({ plain: true }),
+                image: getAvatarUrl(product.image),
+                attributes: attributes.map(attr => ({
+                    name: attr.name,
+                    value: attr.value
+                }))
+            }
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Có lỗi xảy ra khi thêm sản phẩm',
+            error: error.message
+        });
+    }
 }
 
 export async function deleteProduct(req, res) {
     const { id } = req.params
+
+    // Kiểm tra xem sản phẩm có trong bất kì OrderDetail nào không và lấy thông tin chi tiết
+
+    const orderDetailExists = await db.OrderDetail.findOne({
+        where: { product_id: id },
+        include: [{
+            model: db.Order,
+            as: 'order',
+            attributes: ['id', 'status', 'note', 'total', 'created_at']
+        }]
+    });
+
+    // Nếu có OrderDetail tham chiếu đến sản phẩm, không cho phép xóa và trả về thông tin đơn hàng
+
+    if (orderDetailExists) {
+        return res.status(400).json({
+            message: 'Không thể xóa sản phẩm vì đã có đơn hàng tham chiếu đến sản phẩm này',
+            data: {
+                Order: orderDetailExists.order
+            }
+        });
+    }
+
+    // Xóa các bản ghi trong bảng `product_attribute_values` liên quan đến sản phẩm
+
+    await db.ProductAttributeValue.destroy({
+        where: { product_id: id }
+    });
+
+    // Xóa sản phẩm khỏi bảng `products`
     const deleted = await db.Product.destroy({
         where: { id }
     })
@@ -106,34 +201,50 @@ export async function deleteProduct(req, res) {
 
 export async function updateProduct(req, res) {
     const { id } = req.params;
-    const { name } = req.body;
+    const { attributes = [], ...productData } = req.body
 
-    if (name !== undefined) {
-        const existingProduct = await db.Product.findOne({
-            where: {
-                name: name,
-                id: { [Sequelize.Op.ne]: id }
-            }
-        })
-
-        if (existingProduct) {
-            return res.status(400).json({
-                message: 'Tên sản phẩm đã tồn tại, vui lòng chọn tên khác'
-            });
-        }
-    }
-
-    const updatedProduct = await db.Product.update(req.body, {
+    const [updatedRowCount] = await db.Product.update(productData, {
         where: { id }
     });
 
-    if (updatedProduct[0] > 0) {
+    if (updatedRowCount > 0) {
+        // Nếu cập nhật thành công, tiến hành cập nhật thuộc tính động
+        for (const attr of attributes) {
+            // Tìm hoặc tạo thuộc tính trong bảng `attributes`
+            const [attribute] = await db.Attribute.findOrCreate({
+                where: { name: attr.name }
+            });
+
+
+            // Tìm xem thuộc tính đã tồn tại cho sản phẩm chưa
+            const productAttributeValue = await db.ProductAttributeValue.findOne({
+                where: {
+                    product_id: id,
+                    attribute_id: attribute.id
+                }
+            });
+
+            if (productAttributeValue) {
+                // Nếu thuộc tính đã tồn tại, cập nhật giá trị
+                await productAttributeValue.update({ value: attr.value });
+            } else {
+                // Nếu chưa tồn tại, thêm mới thuộc tính và giá trị vào bảng `product_attribute_values`
+                await db.ProductAttributeValue.create({
+                    product_id: id,
+                    attribute_id: attribute.id,
+                    value: attr.value
+                });
+            }
+        }
+
         return res.status(200).json({
-            message: 'Update sản phẩm thành công'
+            message: 'Cập nhật sản phẩm thành công'
         });
     } else {
-        return res.status(400).json({
+        // Nếu không tìm thấy sản phẩm cần cập nhập
+        return res.status(404).json({
             message: 'Sản phẩm không tìm thấy'
         });
     }
+
 }

@@ -12,6 +12,7 @@ class UpdateProductRequest {
         this.quantity = data.quantity;
         this.brand_id = data.brand_id;
         this.category_id = data.category_id;
+        this.attributes = data.attributes; // Mảng attributes động
     }
 
     static validate(data) {
@@ -26,6 +27,12 @@ class UpdateProductRequest {
             quantity: Joi.number().integer().min(0).optional(),
             brand_id: Joi.number().integer().optional(),
             category_id: Joi.number().integer().optional(),
+            attributes: Joi.array().items(
+                Joi.object({
+                    name: Joi.string().required(), // Tên thuộc tính, ví dụ : "Màn hình", "RAM"
+                    value: Joi.string().required() // Giá trị thuộc tính, ví dụ: "6.7 inch", "8GB"
+                })
+            ).optional() // Mảng attributes là tùy chọn 
         });
 
         return schema.validate(data); // { error, value }
